@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import inventario.Inventario.model.Libro;
 import inventario.Inventario.service.LibroService;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/libros")
@@ -25,70 +26,59 @@ public class LibroController {
     private LibroService service;
 
     @GetMapping
-    public List<Libro> listar() {
-        return service.listar();
+    public ResponseEntity<?> listar() {
+
+        List<Libro> lista =
+            service.listar();
+
+        if(lista.isEmpty()) {
+
+            return ResponseEntity.status(404).body("No hay libros registrados");
+        }
+
+        return ResponseEntity.ok(lista);
     }
 
     @PostMapping
-    public ResponseEntity<Libro> guardar(
-            @RequestBody Libro libro) {
+public ResponseEntity<Libro> guardar(
+        @Valid @RequestBody Libro libro) {
 
-        return new ResponseEntity<>(
-                service.guardar(libro),
-                HttpStatus.CREATED);
+    return new ResponseEntity<>(service.guardar(libro),HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Libro> buscar(
-            @PathVariable Long id) {
+    public ResponseEntity<Libro> buscar(@PathVariable Long id) {
 
-        return service.buscar(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return service.buscar(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Libro> actualizar(
-            @PathVariable Long id,
-            @RequestBody Libro nuevoLibro) {
+public ResponseEntity<Libro> actualizar(@PathVariable Long id,@Valid @RequestBody Libro nuevoLibro) {
 
-        return service.buscar(id)
-                .map(libro -> {
+    return service.buscar(id).map(libro -> {
 
-                    libro.setTitulo(
-                        nuevoLibro.getTitulo());
+                libro.setTitulo(nuevoLibro.getTitulo());
 
-                    libro.setAutor(
-                        nuevoLibro.getAutor());
+                libro.setAutor(nuevoLibro.getAutor());
 
-                    libro.setStock(
-                        nuevoLibro.getStock());
+                libro.setStock(nuevoLibro.getStock());
 
-                    libro.setPrecio(
-                        nuevoLibro.getPrecio());
+                libro.setPrecio(nuevoLibro.getPrecio());
 
-                    libro.setCategoria(
-                        nuevoLibro.getCategoria());
+                libro.setCategoria(nuevoLibro.getCategoria());
 
-                    return ResponseEntity.ok(
-                            service.guardar(libro));
-                })
-                .orElse(ResponseEntity.notFound().build());
+                return ResponseEntity.ok(service.guardar(libro));
+            })
+            .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(
-            @PathVariable Long id) {
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
 
-        return service.buscar(id)
-                .map(libro -> {
-
-                    service.eliminar(id);
-
-                    return new ResponseEntity<Void>(
-                            HttpStatus.NO_CONTENT);
-                })
-                .orElse(ResponseEntity.notFound().build());
+        return service.buscar(id).map(libro -> {
+            service.eliminar(id);
+            return new ResponseEntity<Void>(HttpStatus.NO_CONTENT);
+            })
+            .orElse(ResponseEntity.notFound().build());
     }
-    
 }
